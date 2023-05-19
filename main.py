@@ -29,6 +29,7 @@ ANGLE = math.pi
 CASTED_RAYS = 120
 STEP_ANGLE = FOV / CASTED_RAYS
 MAX_DEPTH = int(12 * size_rec)
+SCALE = (WIN_D / 2) / CASTED_RAYS
 
 def draw_player(win):
     pygame.draw.circle(win, (255, 0, 0), (x_player, y_player), 8)
@@ -59,6 +60,8 @@ def map_getter(win):
 
 def key_press():
     global ANGLE
+    global x_player
+    global y_player
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT]:
         ANGLE -= 0.1
@@ -67,23 +70,29 @@ def key_press():
     elif keys[pygame.K_ESCAPE]:
         pygame.quit()
         sys.exit(0)
+    elif keys[pygame.K_UP]:
+        x_player += -math.sin(ANGLE) * 10
+        y_player += math.cos(ANGLE) * 10
+    elif keys[pygame.K_DOWN]:
+        x_player -= -math.sin(ANGLE)
+        y_player -= math.cos(ANGLE)
 
 
 def ray_casting_algo(win):
-    START_ANGLE = ANGLE - HALF_FOV
+    start_angle = ANGLE - HALF_FOV
     for r in range(CASTED_RAYS):
         for d in range(MAX_DEPTH):
-            target_x = x_player - math.sin(START_ANGLE) * d
-            target_y = y_player + math.cos(START_ANGLE) * d
+            target_x = x_player - math.sin(start_angle) * d
+            target_y = y_player + math.cos(start_angle) * d
             j = int(target_x / size_rec)
             i = int(target_y / size_rec)
-            # (target_y / size_rec) * 12 + target_x / 12
             if map_data[i][j] == "#":
                 pygame.draw.rect(win, (255, 0, 0), (j * size_rec, i * size_rec, size_rec - 2, size_rec - 2))
                 pygame.draw.line(win, (255, 0, 0), (x_player, y_player), (target_x, target_y), 3)
+                # wall_h = 21000 / (d + 0.0001)
+                # pygame.draw.rect(win, (255, 255, 255), (r * SCALE, ((WIN_H / 2) - wall_h / 2), SCALE, wall_h))
                 break
-
-        START_ANGLE += STEP_ANGLE
+        start_angle += STEP_ANGLE
 
 
 def main():
@@ -94,7 +103,7 @@ def main():
             input("Type lastname : "),
         )
     pygame.init()
-    screen = pygame.display.set_mode((WIN_H, WIN_D))
+    screen = pygame.display.set_mode((WIN_D, WIN_H))
     pygame.display.set_caption("RayCasting " + obj.get_username() +
                                "[" + obj.get_firstname() + " " + obj.get_lastname() + "]")
     fps = pygame.time.Clock()
@@ -104,6 +113,8 @@ def main():
             if event.type == pygame.QUIT:
                 status = False
         pygame.draw.rect(screen, (0, 0, 0), (0, 0, WIN_H, WIN_D))
+        # pygame.draw.rect(screen, (100, 100, 100), (0, -WIN_H, WIN_H, WIN_D))
+        # pygame.draw.rect(screen, (200, 200, 200), (0, -WIN_H, WIN_H, WIN_D))
         map_getter(screen)
         ray_casting_algo(screen)
         key_press()
