@@ -21,17 +21,27 @@ map_data = [
     "############",
 ]
 
-x_player = (WIN_H / 2) // 2
-y_player = (WIN_D / 2) // 2
+x_player = int((WIN_H / 2) // 2)
+y_player = int((WIN_D / 2) // 2)
+FOV = math.pi / 3
+HALF_FOV = FOV / 3
+ANGLE = math.pi
 
 
 def draw_player(win):
-    pygame.draw.circle(win, (255, 0, 0), (x_player, y_player), 12)
+    pygame.draw.circle(win, (255, 0, 0), (x_player, y_player), 8)
 
 
-def draw_line(win):
-    pygame.draw.line(win, (255, 0, 0), (x_player, y_player), (x_player + math.sin(x_player) * 1.2,
-                                                              (y_player + math.cos(y_player)) * 1.2), 3)
+def draw_lines(win):
+    pygame.draw.line(win, (255, 0, 0), (x_player, y_player),
+                     (x_player - int(math.sin(ANGLE) * size_rec),
+                      y_player + int(math.cos(ANGLE) * size_rec)), 3)
+    pygame.draw.line(win, (255, 0, 0), (x_player, y_player),
+                     (x_player - int(math.sin(ANGLE - HALF_FOV) * size_rec),
+                      y_player + int(math.cos(ANGLE - HALF_FOV) * size_rec)), 3)
+    pygame.draw.line(win, (255, 0, 0), (x_player, y_player),
+                     (x_player - int(math.sin(ANGLE + HALF_FOV) * size_rec),
+                      y_player + int(math.cos(ANGLE + HALF_FOV) * size_rec)), 3)
 
 
 def map_getter(win):
@@ -42,7 +52,20 @@ def map_getter(win):
             pygame.draw.rect(win, color if cell == "#" else color1, pygame.Rect(size_rec * j, size_rec * i,
                                                                                  size_rec - 2, size_rec - 2))
     draw_player(win)
-    draw_line(win)
+    draw_lines(win)
+
+
+def key_press():
+    global ANGLE
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT]:
+        ANGLE -= 0.1
+    elif keys[pygame.K_RIGHT]:
+        ANGLE += 0.1
+    elif keys[pygame.K_ESCAPE]:
+        pygame.quit()
+        sys.exit(0)
+    return ANGLE
 
 
 def main():
@@ -62,7 +85,9 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 status = False
+        pygame.draw.rect(screen, (0, 0, 0), (0, 0, WIN_H, WIN_D))
         map_getter(screen)
+        key_press()
         pygame.display.flip()
         fps.tick(30)
 
